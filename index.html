@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Playground</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Betania+Patmos+In&family=Caveat:wght@400..700&family=Gravitas+One&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --page-bg: rgb(255, 255, 255);
+            --ui-ink: #15161b;
+            --ui-border: #15161b;
+            --ui-hover: rgba(21, 22, 27, 0.08);
+            --canvas-text-color: rgb(21, 22, 27);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0 0 210px;
+            background-color: var(--page-bg);
+            min-height: 100vh;
+            transition: background-color 120ms linear;
+        }
+
+        .top-controls {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-control-btn {
+            min-height: 42px;
+            min-width: 42px;
+            border: none;
+            background: color-mix(in srgb, var(--page-bg) 96%, white 4%);
+            color: var(--ui-ink);
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .top-control-btn:hover {
+            background: var(--ui-hover);
+        }
+
+        .trash-btn {
+            width: 42px;
+            padding: 0;
+            font-size: 18px;
+        }
+
+        .trash-btn.is-drop-target {
+            border-color: #d62424;
+            color: #d62424;
+            background: color-mix(in srgb, #d62424 10%, var(--page-bg));
+        }
+
+        .save-modal[hidden] {
+            display: none;
+        }
+
+        .save-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: grid;
+            place-items: center;
+            background: rgba(10, 11, 14, 0.25);
+            padding: 18px;
+        }
+
+        .save-modal-panel {
+            width: min(680px, 100%);
+            border: 2px solid var(--ui-border);
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--page-bg) 96%, white 4%);
+            color: var(--ui-ink);
+            padding: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .save-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .save-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .save-modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .save-modal-btn {
+            border: 2px solid var(--ui-border);
+            background: transparent;
+            color: var(--ui-ink);
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .save-modal-btn:hover {
+            background: var(--ui-hover);
+        }
+
+        .save-note {
+            width: 100%;
+            min-height: 260px;
+            resize: vertical;
+            border: 2px solid var(--ui-border);
+            background: transparent;
+            color: var(--ui-ink);
+            padding: 10px 12px;
+            font: 13px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            outline: none;
+        }
+
+        .save-copy-status {
+            margin-top: 8px;
+            min-height: 1em;
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .app-shell {
+            min-height: calc(100vh - 210px);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: stretch;
+            position: relative;
+        }
+
+        .playground-canvas {
+            position: relative;
+            min-height: calc(100vh - 210px);
+            overflow: visible;
+            padding: 14px;
+        }
+
+        .canvas-item {
+            position: absolute;
+            margin: 0;
+            color: var(--canvas-text-color);
+            line-height: 1.05;
+            max-width: min(70ch, calc(100% - 40px));
+            word-break: break-word;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .canvas-item.dragging {
+            cursor: grabbing;
+        }
+
+        .playground-canvas h1.canvas-item,
+        .playground-canvas h2.canvas-item,
+        .playground-canvas h3.canvas-item,
+        .playground-canvas h4.canvas-item,
+        .playground-canvas p.canvas-item {
+            margin: 0;
+        }
+
+        .playground-canvas h1.canvas-item { font-size: clamp(40px, 5vw, 70px); }
+        .playground-canvas h2.canvas-item { font-size: clamp(32px, 4vw, 56px); }
+        .playground-canvas h3.canvas-item { font-size: clamp(26px, 3vw, 42px); }
+        .playground-canvas h4.canvas-item { font-size: clamp(22px, 2.4vw, 32px); }
+        .playground-canvas p.canvas-item { font-size: clamp(16px, 1.6vw, 22px); line-height: 1.25; }
+
+        .type-composer {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            width: min(520px, calc(100% - 160px));
+            z-index: 40;
+        }
+
+        .type-composer[hidden] {
+            display: none;
+        }
+
+        .type-composer-shell {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 64px;
+            border: 2px solid var(--ui-border);
+            background: color-mix(in srgb, var(--page-bg) 95%, white 5%);
+            min-height: 58px;
+        }
+
+        .type-input {
+            border: none;
+            background: transparent;
+            color: var(--ui-ink);
+            font-size: 18px;
+            padding: 14px 18px;
+            width: 100%;
+            outline: none;
+            font-weight: 500;
+        }
+
+        .type-input::placeholder {
+            color: color-mix(in srgb, var(--ui-ink) 48%, transparent);
+        }
+
+        .menu-button {
+            border: none;
+            border-left: 2px solid var(--ui-border);
+            background: transparent;
+            color: var(--ui-ink);
+            font-size: 26px;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .menu-button:hover {
+            background: var(--ui-hover);
+        }
+
+        .menu-panel {
+            display: none;
+            margin-top: 8px;
+            border: 2px solid var(--ui-border);
+            background: color-mix(in srgb, var(--page-bg) 96%, white 4%);
+            max-height: 200px;
+            overflow-y: auto;
+            position: relative;
+            z-index: 41;
+        }
+
+        .menu-panel.open {
+            display: block;
+        }
+
+        .menu-panel.open-up {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: calc(100% + 8px);
+            margin-top: 0;
+        }
+
+        .font-menu-list {
+            display: flex;
+            flex-direction: column;
+            padding: 6px;
+            gap: 4px;
+        }
+
+        .font-menu-item {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--ui-ink);
+            text-align: left;
+            padding: 10px 12px;
+            font-size: 18px;
+            line-height: 1.1;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .font-menu-item:hover {
+            background: var(--ui-hover);
+        }
+
+        .font-menu-item.active {
+            border-color: var(--ui-border);
+            background: color-mix(in srgb, var(--ui-hover) 80%, transparent);
+        }
+
+        .button-column {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            padding: 16px 20px 16px 0;
+            position: relative;
+            z-index: 1;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+
+        .button-column > button {
+            border: none;
+            padding: 2px 14px;
+            font-size: clamp(44px, 5vw, 66px);
+            cursor: pointer;
+            background-color: transparent;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            color: var(--ui-ink);
+            line-height: 1;
+            text-transform: lowercase;
+        }
+
+        .button-column > button:hover {
+            background-color: var(--ui-hover);
+        }
+
+        .customizer-dock {
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            z-index: 10;
+            color: var(--ui-ink);
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .customizer-shell {
+            position: relative;
+            border: 3px solid var(--ui-border);
+            border-radius: 6px;
+            padding: 12px 14px 12px;
+            background: color-mix(in srgb, var(--page-bg) 96%, white 4%);
+        }
+
+        .tab-row {
+            position: absolute;
+            top: -3px;
+            left: 0px;
+            display: flex;
+            align-items: flex-start;
+            gap: 0;
+            transform: translateY(-100%);
+        }
+
+        .tab-btn {
+            min-width: 70px;
+            padding: 10px 0px;
+            margin: 0;
+            border: none;
+            border-bottom: none;
+            background: transparent;
+            color: var(--ui-ink);
+            font-size: clamp(12px, 1.2vw, 16px);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .tab-btn + .tab-btn {
+            margin-left: -3px;
+        }
+
+        .tab-btn[aria-selected="false"] {
+            opacity: 0.9;
+        }
+
+        .tab-btn.active {
+            background: color-mix(in srgb, var(--page-bg) 97%, white 3%);
+            position: relative;
+            z-index: 2;
+        }
+
+        .tab-btn:not(.active) {
+            background: color-mix(in srgb, var(--page-bg) 92%, white 8%);
+            z-index: 1;
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .slider-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .slider-label {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: clamp(14px, 1.2vw, 18px);
+            font-weight: 500;
+            color: var(--ui-ink);
+        }
+
+        .slider-label .value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .slider {
+            width: 100%;
+            appearance: none;
+            -webkit-appearance: none;
+            height: 7px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--ui-ink) 92%, transparent);
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--ui-ink);
+            border: 2px solid var(--ui-ink);
+            cursor: pointer;
+            margin-top: -5px;
+        }
+
+        .slider::-moz-range-track {
+            height: 7px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--ui-ink) 92%, transparent);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--ui-ink);
+            border: 2px solid var(--ui-ink);
+            cursor: pointer;
+        }
+
+        .placeholder-panel {
+            min-height: 112px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .placeholder-title {
+            font-size: clamp(14px, 1.1vw, 17px);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .placeholder-note {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+
+        .placeholder-line {
+            width: 100%;
+            height: 7px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--ui-ink) 92%, transparent);
+            opacity: 0.35;
+        }
+
+        .placeholder-tabs .tab-btn {
+            cursor: default;
+        }
+
+        .placeholder-tabs .tab-btn:disabled {
+            opacity: 1;
+        }
+
+        @media (max-width: 780px) {
+            body {
+                padding-bottom: 360px;
+            }
+
+            .app-shell {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .playground-canvas {
+                min-height: 52vh;
+                padding: 10px;
+            }
+
+            .type-composer {
+                top: 10px;
+                left: 10px;
+                width: auto;
+            }
+
+            .type-composer-shell {
+                grid-template-columns: minmax(0, 1fr) 52px;
+                min-height: 50px;
+            }
+
+            .type-input {
+                font-size: 16px;
+                padding: 12px 14px;
+            }
+
+            .menu-button {
+                font-size: 22px;
+            }
+            .button-column {
+                width: 100%;
+                align-items: center;
+                flex-direction: row;
+                justify-content: center;
+                padding: 16px 10px 8px;
+                gap: 8px;
+            }
+
+            .button-column > button {
+                font-size: 34px;
+                padding: 4px 10px;
+            }
+
+            .top-controls {
+                top: 10px;
+                left: 10px;
+                gap: 8px;
+            }
+
+            .top-control-btn {
+                min-height: 38px;
+                min-width: 38px;
+                font-size: 14px;
+            }
+
+            .save-modal {
+                padding: 10px;
+            }
+
+            .save-modal-panel {
+                padding: 10px;
+            }
+
+            .save-modal-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .save-note {
+                min-height: 220px;
+            }
+
+            .customizer-dock {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .customizer-shell {
+                padding: 34px 12px 10px;
+                border-width: 3px;
+            }
+
+            .tab-row {
+                left: 10px;
+                top: -3px;
+            }
+
+            .tab-btn {
+                min-width: 64px;
+                padding: 8px 12px;
+                border-width: 3px;
+            }
+
+            .tab-btn + .tab-btn {
+                margin-left: -3px;
+            }
+
+            .slider {
+                height: 7px;
+            }
+
+            .slider::-webkit-slider-thumb {
+                width: 16px;
+                height: 16px;
+                margin-top: -4px;
+            }
+
+            .slider::-moz-range-track {
+                height: 7px;
+            }
+
+            .slider::-moz-range-thumb {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-controls" aria-label="Page controls">
+        <button class="top-control-btn" id="save-note-button" type="button">Save</button>
+        <button class="top-control-btn" id="reset-page-button" type="button">Reset</button>
+        <button class="top-control-btn trash-btn" id="trash-dropzone" type="button" aria-label="Trash bin">
+            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+        </button>
+    </div>
+
+    <div class="save-modal" id="save-modal" hidden role="dialog" aria-modal="true" aria-labelledby="save-modal-title">
+        <div class="save-modal-panel">
+            <div class="save-modal-header">
+                <div class="save-modal-title" id="save-modal-title">Playground Notecard</div>
+                <div class="save-modal-actions">
+                    <button class="save-modal-btn" id="copy-note-button" type="button">Copy</button>
+                    <button class="save-modal-btn" id="close-save-modal-button" type="button">Close</button>
+                </div>
+            </div>
+            <textarea class="save-note" id="save-note-text" spellcheck="false"></textarea>
+            <div class="save-copy-status" id="save-copy-status" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <main class="playground-canvas" id="playground-canvas" aria-label="Font playground canvas">
+            <form class="type-composer" id="type-composer" hidden autocomplete="off">
+                <div class="type-composer-shell">
+                    <input
+                        class="type-input"
+                        id="type-input"
+                        type="text"
+                        placeholder="Type"
+                        aria-label="Enter text to place on canvas"
+                    >
+                    <button class="menu-button" id="font-menu-button" type="button" aria-label="Font options menu">
+                        &#8801;
+                    </button>
+                </div>
+                <div class="menu-panel" id="font-menu-panel" aria-hidden="true">
+                    <div class="font-menu-list" id="font-menu-list" role="listbox" aria-label="Font options"></div>
+                </div>
+            </form>
+        </main>
+
+        <div class="button-column" aria-label="Text style buttons">
+            <button type="button" data-text-type="h1">h1</button>
+            <button type="button" data-text-type="h2">h2</button>
+            <button type="button" data-text-type="h3">h3</button>
+            <button type="button" data-text-type="h4">h4</button>
+            <button type="button" data-text-type="p">p</button>
+        </div>
+    </div>
+
+    <div class="customizer-dock">
+        <section class="color-customizer" id="bg-customizer" aria-label="Background color customizer">
+            <div class="customizer-shell">
+                <div class="tab-row" role="tablist" aria-label="Background color model">
+                    <button class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="panel-rgb" id="tab-rgb" data-panel="rgb">RGB</button>
+                    <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="panel-hsl" id="tab-hsl" data-panel="hsl">HSL</button>
+                </div>
+
+                <div class="panel active" id="panel-rgb" role="tabpanel" aria-labelledby="tab-rgb">
+                    <div class="slider-group">
+                        <label class="slider-label" for="rgb-r">
+                            <span>Red</span>
+                            <span class="value" id="rgb-r-value">255</span>
+                        </label>
+                        <input class="slider" id="rgb-r" type="range" min="0" max="255" step="1" value="255">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="rgb-g">
+                            <span>Green</span>
+                            <span class="value" id="rgb-g-value">255</span>
+                        </label>
+                        <input class="slider" id="rgb-g" type="range" min="0" max="255" step="1" value="255">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="rgb-b">
+                            <span>Blue</span>
+                            <span class="value" id="rgb-b-value">255</span>
+                        </label>
+                        <input class="slider" id="rgb-b" type="range" min="0" max="255" step="1" value="255">
+                    </div>
+                </div>
+
+                <div class="panel" id="panel-hsl" role="tabpanel" aria-labelledby="tab-hsl" hidden>
+                    <div class="slider-group">
+                        <label class="slider-label" for="hsl-h">
+                            <span>Hue</span>
+                            <span class="value" id="hsl-h-value">0°</span>
+                        </label>
+                        <input class="slider" id="hsl-h" type="range" min="0" max="360" step="1" value="0">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="hsl-s">
+                            <span>Saturation</span>
+                            <span class="value" id="hsl-s-value">0%</span>
+                        </label>
+                        <input class="slider" id="hsl-s" type="range" min="0" max="100" step="1" value="0">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="hsl-l">
+                            <span>Lightness</span>
+                            <span class="value" id="hsl-l-value">100%</span>
+                        </label>
+                        <input class="slider" id="hsl-l" type="range" min="0" max="100" step="1" value="100">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="font-customizer" id="font-color-customizer" aria-label="Font color customizer">
+            <div class="customizer-shell">
+                <div class="tab-row" role="tablist" aria-label="Font color model">
+                    <button class="tab-btn active" type="button" role="tab" aria-selected="true" aria-controls="font-panel-rgb" id="font-tab-rgb" data-panel="rgb">RGB</button>
+                    <button class="tab-btn" type="button" role="tab" aria-selected="false" aria-controls="font-panel-hsl" id="font-tab-hsl" data-panel="hsl">HSL</button>
+                </div>
+
+                <div class="panel active" id="font-panel-rgb" role="tabpanel" aria-labelledby="font-tab-rgb">
+                    <div class="slider-group">
+                        <label class="slider-label" for="font-rgb-r">
+                            <span>Red</span>
+                            <span class="value" id="font-rgb-r-value">21</span>
+                        </label>
+                        <input class="slider" id="font-rgb-r" type="range" min="0" max="255" step="1" value="21">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="font-rgb-g">
+                            <span>Green</span>
+                            <span class="value" id="font-rgb-g-value">22</span>
+                        </label>
+                        <input class="slider" id="font-rgb-g" type="range" min="0" max="255" step="1" value="22">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="font-rgb-b">
+                            <span>Blue</span>
+                            <span class="value" id="font-rgb-b-value">27</span>
+                        </label>
+                        <input class="slider" id="font-rgb-b" type="range" min="0" max="255" step="1" value="27">
+                    </div>
+                </div>
+
+                <div class="panel" id="font-panel-hsl" role="tabpanel" aria-labelledby="font-tab-hsl" hidden>
+                    <div class="slider-group">
+                        <label class="slider-label" for="font-hsl-h">
+                            <span>Hue</span>
+                            <span class="value" id="font-hsl-h-value">233°</span>
+                        </label>
+                        <input class="slider" id="font-hsl-h" type="range" min="0" max="360" step="1" value="233">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="font-hsl-s">
+                            <span>Saturation</span>
+                            <span class="value" id="font-hsl-s-value">13%</span>
+                        </label>
+                        <input class="slider" id="font-hsl-s" type="range" min="0" max="100" step="1" value="13">
+                    </div>
+                    <div class="slider-group">
+                        <label class="slider-label" for="font-hsl-l">
+                            <span>Lightness</span>
+                            <span class="value" id="font-hsl-l-value">9%</span>
+                        </label>
+                        <input class="slider" id="font-hsl-l" type="range" min="0" max="100" step="1" value="9">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const root = document.documentElement;
+        const appShell = document.querySelector('.app-shell');
+        const playgroundCanvas = document.getElementById('playground-canvas');
+        const typeComposer = document.getElementById('type-composer');
+        const typeInput = document.getElementById('type-input');
+        const typeButtons = document.querySelectorAll('.button-column [data-text-type]');
+        const fontMenuButton = document.getElementById('font-menu-button');
+        const fontMenuPanel = document.getElementById('font-menu-panel');
+        const fontMenuList = document.getElementById('font-menu-list');
+        const resetPageButton = document.getElementById('reset-page-button');
+        const saveNoteButton = document.getElementById('save-note-button');
+        const trashDropzone = document.getElementById('trash-dropzone');
+        const saveModal = document.getElementById('save-modal');
+        const saveNoteText = document.getElementById('save-note-text');
+        const copyNoteButton = document.getElementById('copy-note-button');
+        const closeSaveModalButton = document.getElementById('close-save-modal-button');
+        const saveCopyStatus = document.getElementById('save-copy-status');
+        const bgCustomizer = document.getElementById('bg-customizer');
+        const tabButtons = bgCustomizer.querySelectorAll('.tab-btn');
+        const fontColorCustomizer = document.getElementById('font-color-customizer');
+        const fontColorTabButtons = fontColorCustomizer.querySelectorAll('.tab-btn');
+        let activeTextType = 'h1';
+        let placedItemCount = 0;
+        let canvasItemZIndex = 1;
+        let dragState = null;
+        let activeFontFamily = 'inherit';
+        let activeFontStyle = 'normal';
+        let activeFontWeight = 'inherit';
+
+        const fontOptions = [
+            { label: 'Roboto', family: '"Roboto", sans-serif', weight: '500' },
+            { label: 'Montserrat', family: '"Montserrat", sans-serif', weight: '600' },
+            { label: 'Betania', family: '"Betania Patmos In", cursive', weight: '400' },
+            { label: 'Nunito', family: '"Nunito Sans", sans-serif', weight: '600' },
+            { label: 'Noto', family: '"Noto Serif", serif', weight: '500' },
+            { label: 'Instrument', family: '"Instrument Serif", serif', weight: '400' },
+            { label: 'Roboto', family: '"Roboto Mono", monospace', weight: '500' },
+            { label: 'Archivo', family: '"Archivo Black", sans-serif', weight: '400' },
+            { label: 'Quicksand', family: '"Quicksand", sans-serif', weight: '600' },
+            { label: 'Gravitas', family: '"Gravitas One", serif', weight: '400' },
+            { label: 'Caveat', family: '"Caveat", cursive', weight: '600' },
+            { label: 'Playfair', family: '"Playfair Display", serif', weight: '700' }
+        ];
+
+        const panels = {
+            rgb: document.getElementById('panel-rgb'),
+            hsl: document.getElementById('panel-hsl')
+        };
+
+        const rgbInputs = {
+            r: document.getElementById('rgb-r'),
+            g: document.getElementById('rgb-g'),
+            b: document.getElementById('rgb-b')
+        };
+
+        const hslInputs = {
+            h: document.getElementById('hsl-h'),
+            s: document.getElementById('hsl-s'),
+            l: document.getElementById('hsl-l')
+        };
+        const fontPanels = {
+            rgb: document.getElementById('font-panel-rgb'),
+            hsl: document.getElementById('font-panel-hsl')
+        };
+        const fontRgbInputs = {
+            r: document.getElementById('font-rgb-r'),
+            g: document.getElementById('font-rgb-g'),
+            b: document.getElementById('font-rgb-b')
+        };
+        const fontHslInputs = {
+            h: document.getElementById('font-hsl-h'),
+            s: document.getElementById('font-hsl-s'),
+            l: document.getElementById('font-hsl-l')
+        };
+
+        const labels = {
+            rgbR: document.getElementById('rgb-r-value'),
+            rgbG: document.getElementById('rgb-g-value'),
+            rgbB: document.getElementById('rgb-b-value'),
+            hslH: document.getElementById('hsl-h-value'),
+            hslS: document.getElementById('hsl-s-value'),
+            hslL: document.getElementById('hsl-l-value')
+        };
+        const fontLabels = {
+            rgbR: document.getElementById('font-rgb-r-value'),
+            rgbG: document.getElementById('font-rgb-g-value'),
+            rgbB: document.getElementById('font-rgb-b-value'),
+            hslH: document.getElementById('font-hsl-h-value'),
+            hslS: document.getElementById('font-hsl-s-value'),
+            hslL: document.getElementById('font-hsl-l-value')
+        };
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function isPointerOverElement(clientX, clientY, element) {
+            const rect = element.getBoundingClientRect();
+            return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+        }
+
+        function formatRgbString(rgbString) {
+            return rgbString.replace(/\s+/g, ' ').trim();
+        }
+
+        function buildSaveNote() {
+            const rootStyles = getComputedStyle(root);
+            const bodyStyles = getComputedStyle(document.body);
+            const bgColor = formatRgbString(bodyStyles.backgroundColor);
+            const canvasTextColor = formatRgbString(rootStyles.getPropertyValue('--canvas-text-color'));
+            const canvasItems = [...playgroundCanvas.querySelectorAll('.canvas-item')];
+            const typeMap = new Map([
+                ['h1', new Set()],
+                ['h2', new Set()],
+                ['h3', new Set()],
+                ['h4', new Set()],
+                ['p', new Set()]
+            ]);
+
+            canvasItems.forEach((item) => {
+                const tag = item.tagName.toLowerCase();
+                if (!typeMap.has(tag)) typeMap.set(tag, new Set());
+                const fontFamily = getComputedStyle(item).fontFamily;
+                typeMap.get(tag).add(fontFamily);
+            });
+
+            const fontLines = [...typeMap.entries()].map(([tag, fonts]) => {
+                const list = [...fonts];
+                return `${tag}: ${list.length ? list.join(' | ') : ''}`;
+            });
+
+            const lines = [
+                'Font Playground Notecard',
+                '',
+                `Background: ${bgColor}`,
+                `Text Color: ${canvasTextColor}`,
+                '',
+                'Font used:',
+                ...fontLines
+            ];
+
+            return lines.join('\n');
+        }
+
+        function openSaveModal() {
+            saveNoteText.value = buildSaveNote();
+            saveCopyStatus.textContent = '';
+            saveModal.hidden = false;
+            saveNoteText.focus();
+            saveNoteText.select();
+        }
+
+        function closeSaveModal() {
+            saveModal.hidden = true;
+        }
+
+        async function copySaveNote() {
+            const text = saveNoteText.value;
+            try {
+                if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    saveNoteText.focus();
+                    saveNoteText.select();
+                    document.execCommand('copy');
+                }
+                saveCopyStatus.textContent = 'Copied to clipboard.';
+            } catch {
+                saveCopyStatus.textContent = 'Copy failed. You can still copy manually.';
+            }
+        }
+
+        function closeFontMenu() {
+            fontMenuPanel.classList.remove('open');
+            fontMenuPanel.classList.remove('open-up');
+            fontMenuPanel.setAttribute('aria-hidden', 'true');
+        }
+
+        function toggleFontMenu() {
+            const willOpen = !fontMenuPanel.classList.contains('open');
+            if (!willOpen) {
+                closeFontMenu();
+                return;
+            }
+
+            const composerRect = typeComposer.getBoundingClientRect();
+            const estimatedMenuHeight = 220;
+            const spaceBelow = window.innerHeight - composerRect.bottom;
+            const shouldOpenUp = spaceBelow < estimatedMenuHeight;
+
+            fontMenuPanel.classList.add('open');
+            fontMenuPanel.classList.toggle('open-up', shouldOpenUp);
+            fontMenuPanel.setAttribute('aria-hidden', 'false');
+        }
+
+        function activateCustomizerPanel(buttonNodeList, panelMap, panelName) {
+            buttonNodeList.forEach((btn) => {
+                const isActive = btn.dataset.panel === panelName;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-selected', String(isActive));
+            });
+
+            Object.entries(panelMap).forEach(([name, panel]) => {
+                const isActive = name === panelName;
+                panel.classList.toggle('active', isActive);
+                panel.hidden = !isActive;
+            });
+        }
+
+        function setActiveFont(option) {
+            activeFontFamily = option.family;
+            activeFontWeight = option.weight ?? 'inherit';
+            activeFontStyle = option.style ?? 'normal';
+            typeInput.style.fontFamily = option.family;
+            typeInput.style.fontWeight = activeFontWeight;
+            typeInput.style.fontStyle = activeFontStyle;
+
+            fontMenuList.querySelectorAll('.font-menu-item').forEach((item) => {
+                item.classList.toggle('active', item.dataset.family === option.family);
+            });
+        }
+
+        function updateColorLabels(labelSet, r, g, b, h, s, l) {
+            labelSet.rgbR.textContent = r;
+            labelSet.rgbG.textContent = g;
+            labelSet.rgbB.textContent = b;
+            labelSet.hslH.textContent = `${h}\u00B0`;
+            labelSet.hslS.textContent = `${s}%`;
+            labelSet.hslL.textContent = `${l}%`;
+        }
+
+        function buildFontMenu() {
+            fontOptions.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'font-menu-item';
+                btn.role = 'option';
+                btn.textContent = option.label;
+                btn.dataset.family = option.family;
+                btn.style.fontFamily = option.family;
+                btn.style.fontWeight = option.weight ?? '400';
+                btn.style.fontStyle = option.style ?? 'normal';
+
+                btn.addEventListener('click', () => {
+                    setActiveFont(option);
+                    closeFontMenu();
+                    typeInput.focus();
+                });
+
+                if (index === 0) {
+                    btn.classList.add('active');
+                    setActiveFont(option);
+                }
+
+                fontMenuList.appendChild(btn);
+            });
+        }
+
+        function getCanvasPlacement() {
+            const rect = playgroundCanvas.getBoundingClientRect();
+            const maxWidth = Math.max(220, rect.width - 40);
+            const gutter = 22;
+            const colWidth = 220;
+            const columns = Math.max(1, Math.floor((maxWidth - gutter) / colWidth));
+            const col = placedItemCount % columns;
+            const row = Math.floor(placedItemCount / columns);
+            const x = 24 + col * colWidth;
+            const y = 110 + row * 76;
+            const maxX = Math.max(24, rect.width - 80);
+            const maxY = Math.max(80, rect.height - 60);
+
+            return {
+                x: Math.min(x, maxX),
+                y: Math.min(y, maxY)
+            };
+        }
+
+        function positionComposerNextToButton(buttonEl) {
+            const appRect = appShell.getBoundingClientRect();
+            const canvasRect = playgroundCanvas.getBoundingClientRect();
+            const buttonRect = buttonEl.getBoundingClientRect();
+            const gap = 12;
+            const leftPadding = 12;
+            const rightEdge = buttonRect.left - appRect.left - gap;
+            const availableWidth = rightEdge - leftPadding;
+            const desiredWidth = 520;
+            const minWidth = 220;
+            const width = Math.max(minWidth, Math.min(desiredWidth, availableWidth));
+            const left = Math.max(leftPadding, rightEdge - width);
+
+            typeComposer.style.width = `${width}px`;
+            typeComposer.style.left = `${left}px`;
+
+            const composerHeight = typeComposer.offsetHeight || 58;
+            const rawTop = buttonRect.top - canvasRect.top + (buttonRect.height - composerHeight) / 2;
+            const maxTop = Math.max(10, canvasRect.height - composerHeight - 10);
+            const top = clamp(Math.round(rawTop), 10, maxTop);
+
+            typeComposer.style.top = `${top}px`;
+        }
+
+        function openComposerForType(tagName, buttonEl) {
+            activeTextType = tagName;
+            typeComposer.hidden = false;
+            typeInput.placeholder = `Type ${tagName}`;
+            if (buttonEl) positionComposerNextToButton(buttonEl);
+            typeInput.focus();
+            typeInput.select();
+        }
+
+        function placeCanvasText(text, tagName) {
+            const item = document.createElement(tagName);
+            item.className = 'canvas-item';
+            item.textContent = text;
+
+            const pos = getCanvasPlacement();
+            item.style.left = `${pos.x}px`;
+            item.style.top = `${pos.y}px`;
+            item.style.zIndex = String(++canvasItemZIndex);
+            item.style.fontFamily = activeFontFamily;
+            item.style.fontWeight = activeFontWeight;
+            item.style.fontStyle = activeFontStyle;
+
+            playgroundCanvas.appendChild(item);
+            placedItemCount += 1;
+        }
+
+        function clearCanvasItems() {
+            playgroundCanvas.querySelectorAll('.canvas-item').forEach((item) => item.remove());
+            placedItemCount = 0;
+            canvasItemZIndex = 1;
+        }
+
+        function resetPlayground() {
+            clearCanvasItems();
+            typeComposer.hidden = true;
+            typeInput.value = '';
+            closeFontMenu();
+            if (fontOptions[0]) setActiveFont(fontOptions[0]);
+            activatePanel('rgb');
+            activateFontColorPanel('rgb');
+            applyColorFromRgb(255, 255, 255);
+            applyFontColorFromRgb(21, 22, 27);
+            trashDropzone.classList.remove('is-drop-target');
+            dragState = null;
+        }
+
+        function startDraggingCanvasItem(event) {
+            const item = event.target.closest('.canvas-item');
+            if (!item || !playgroundCanvas.contains(item)) return;
+
+            const canvasRect = playgroundCanvas.getBoundingClientRect();
+            const itemRect = item.getBoundingClientRect();
+            dragState = {
+                item,
+                pointerId: event.pointerId,
+                offsetX: event.clientX - itemRect.left,
+                offsetY: event.clientY - itemRect.top
+            };
+
+            item.classList.add('dragging');
+            item.style.zIndex = String(++canvasItemZIndex);
+            if (typeof item.setPointerCapture === 'function') {
+                item.setPointerCapture(event.pointerId);
+            }
+            trashDropzone.classList.remove('is-drop-target');
+
+            event.preventDefault();
+        }
+
+        function moveDraggingCanvasItem(event) {
+            if (!dragState || event.pointerId !== dragState.pointerId) return;
+
+            const { item, offsetX, offsetY } = dragState;
+            const canvasRect = playgroundCanvas.getBoundingClientRect();
+            const itemWidth = item.offsetWidth;
+            const itemHeight = item.offsetHeight;
+
+            const rawLeft = event.clientX - canvasRect.left - offsetX;
+            const rawTop = event.clientY - canvasRect.top - offsetY;
+            const maxLeft = Math.max(0, canvasRect.width - itemWidth);
+            const maxTop = Math.max(0, canvasRect.height - itemHeight);
+
+            item.style.left = `${clamp(Math.round(rawLeft), 0, maxLeft)}px`;
+            item.style.top = `${clamp(Math.round(rawTop), 0, maxTop)}px`;
+
+            trashDropzone.classList.toggle(
+                'is-drop-target',
+                isPointerOverElement(event.clientX, event.clientY, trashDropzone)
+            );
+        }
+
+        function stopDraggingCanvasItem(event) {
+            if (!dragState) return;
+            if (event && event.pointerId != null && event.pointerId !== dragState.pointerId) return;
+
+            const { item, pointerId } = dragState;
+            const shouldDelete = !!event && isPointerOverElement(event.clientX, event.clientY, trashDropzone);
+            item.classList.remove('dragging');
+            if (typeof item.releasePointerCapture === 'function' && item.hasPointerCapture?.(pointerId)) {
+                item.releasePointerCapture(pointerId);
+            }
+            if (shouldDelete) item.remove();
+            trashDropzone.classList.remove('is-drop-target');
+            dragState = null;
+        }
+
+        function rgbToHsl(r, g, b) {
+            const rn = r / 255;
+            const gn = g / 255;
+            const bn = b / 255;
+            const max = Math.max(rn, gn, bn);
+            const min = Math.min(rn, gn, bn);
+            const delta = max - min;
+            let h = 0;
+            let s = 0;
+            const l = (max + min) / 2;
+
+            if (delta !== 0) {
+                s = delta / (1 - Math.abs(2 * l - 1));
+                switch (max) {
+                    case rn:
+                        h = 60 * (((gn - bn) / delta) % 6);
+                        break;
+                    case gn:
+                        h = 60 * ((bn - rn) / delta + 2);
+                        break;
+                    default:
+                        h = 60 * ((rn - gn) / delta + 4);
+                        break;
+                }
+            }
+
+            if (h < 0) h += 360;
+
+            return {
+                h: Math.round(h),
+                s: Math.round(s * 100),
+                l: Math.round(l * 100)
+            };
+        }
+
+        function hslToRgb(h, s, l) {
+            const sn = s / 100;
+            const ln = l / 100;
+            const c = (1 - Math.abs(2 * ln - 1)) * sn;
+            const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+            const m = ln - c / 2;
+            let r1 = 0;
+            let g1 = 0;
+            let b1 = 0;
+
+            if (h >= 0 && h < 60) [r1, g1, b1] = [c, x, 0];
+            else if (h < 120) [r1, g1, b1] = [x, c, 0];
+            else if (h < 180) [r1, g1, b1] = [0, c, x];
+            else if (h < 240) [r1, g1, b1] = [0, x, c];
+            else if (h < 300) [r1, g1, b1] = [x, 0, c];
+            else [r1, g1, b1] = [c, 0, x];
+
+            return {
+                r: Math.round((r1 + m) * 255),
+                g: Math.round((g1 + m) * 255),
+                b: Math.round((b1 + m) * 255)
+            };
+        }
+
+        function setUiContrast(r, g, b) {
+            const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+            const darkUi = luminance > 0.58;
+            root.style.setProperty('--ui-ink', darkUi ? '#15161b' : '#f7f8fb');
+            root.style.setProperty('--ui-border', darkUi ? '#15161b' : '#f7f8fb');
+            root.style.setProperty('--ui-hover', darkUi ? 'rgba(21, 22, 27, 0.08)' : 'rgba(247, 248, 251, 0.12)');
+        }
+
+        function updateLabels(r, g, b, h, s, l) {
+            updateColorLabels(labels, r, g, b, h, s, l);
+        }
+
+        function applyColorFromRgb(r, g, b) {
+            const safeR = clamp(Math.round(r), 0, 255);
+            const safeG = clamp(Math.round(g), 0, 255);
+            const safeB = clamp(Math.round(b), 0, 255);
+            const hsl = rgbToHsl(safeR, safeG, safeB);
+
+            rgbInputs.r.value = safeR;
+            rgbInputs.g.value = safeG;
+            rgbInputs.b.value = safeB;
+            hslInputs.h.value = hsl.h;
+            hslInputs.s.value = hsl.s;
+            hslInputs.l.value = hsl.l;
+
+            root.style.setProperty('--page-bg', `rgb(${safeR}, ${safeG}, ${safeB})`);
+            setUiContrast(safeR, safeG, safeB);
+            updateLabels(safeR, safeG, safeB, hsl.h, hsl.s, hsl.l);
+        }
+
+        function applyColorFromHsl(h, s, l) {
+            const safeH = ((Math.round(h) % 360) + 360) % 360;
+            const safeS = clamp(Math.round(s), 0, 100);
+            const safeL = clamp(Math.round(l), 0, 100);
+            const rgb = hslToRgb(safeH, safeS, safeL);
+            applyColorFromRgb(rgb.r, rgb.g, rgb.b);
+        }
+
+        function applyFontColorFromRgb(r, g, b) {
+            const safeR = clamp(Math.round(r), 0, 255);
+            const safeG = clamp(Math.round(g), 0, 255);
+            const safeB = clamp(Math.round(b), 0, 255);
+            const hsl = rgbToHsl(safeR, safeG, safeB);
+
+            fontRgbInputs.r.value = safeR;
+            fontRgbInputs.g.value = safeG;
+            fontRgbInputs.b.value = safeB;
+            fontHslInputs.h.value = hsl.h;
+            fontHslInputs.s.value = hsl.s;
+            fontHslInputs.l.value = hsl.l;
+
+            root.style.setProperty('--canvas-text-color', `rgb(${safeR}, ${safeG}, ${safeB})`);
+            updateColorLabels(fontLabels, safeR, safeG, safeB, hsl.h, hsl.s, hsl.l);
+        }
+
+        function applyFontColorFromHsl(h, s, l) {
+            const safeH = ((Math.round(h) % 360) + 360) % 360;
+            const safeS = clamp(Math.round(s), 0, 100);
+            const safeL = clamp(Math.round(l), 0, 100);
+            const rgb = hslToRgb(safeH, safeS, safeL);
+            applyFontColorFromRgb(rgb.r, rgb.g, rgb.b);
+        }
+
+        function activatePanel(panelName) {
+            activateCustomizerPanel(tabButtons, panels, panelName);
+        }
+
+        function activateFontColorPanel(panelName) {
+            activateCustomizerPanel(fontColorTabButtons, fontPanels, panelName);
+        }
+
+        tabButtons.forEach((btn) => {
+            btn.addEventListener('click', () => activatePanel(btn.dataset.panel));
+        });
+        fontColorTabButtons.forEach((btn) => {
+            btn.addEventListener('click', () => activateFontColorPanel(btn.dataset.panel));
+        });
+
+        typeButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                openComposerForType(btn.dataset.textType, btn);
+            });
+        });
+
+        resetPageButton.addEventListener('click', resetPlayground);
+        saveNoteButton.addEventListener('click', openSaveModal);
+        closeSaveModalButton.addEventListener('click', closeSaveModal);
+        copyNoteButton.addEventListener('click', copySaveNote);
+        saveModal.addEventListener('click', (event) => {
+            if (event.target === saveModal) closeSaveModal();
+        });
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !saveModal.hidden) {
+                closeSaveModal();
+            }
+        });
+
+        playgroundCanvas.addEventListener('pointerdown', startDraggingCanvasItem);
+        window.addEventListener('pointermove', moveDraggingCanvasItem);
+        window.addEventListener('pointerup', stopDraggingCanvasItem);
+        window.addEventListener('pointercancel', stopDraggingCanvasItem);
+
+        typeComposer.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const value = typeInput.value.trim();
+            if (!value) return;
+
+            placeCanvasText(value, activeTextType);
+            typeInput.value = '';
+            typeComposer.hidden = true;
+            closeFontMenu();
+            typeInput.focus();
+        });
+
+        fontMenuButton.addEventListener('click', toggleFontMenu);
+
+        Object.values(rgbInputs).forEach((input) => {
+            input.addEventListener('input', () => {
+                applyColorFromRgb(
+                    Number(rgbInputs.r.value),
+                    Number(rgbInputs.g.value),
+                    Number(rgbInputs.b.value)
+                );
+            });
+        });
+
+        Object.values(hslInputs).forEach((input) => {
+            input.addEventListener('input', () => {
+                applyColorFromHsl(
+                    Number(hslInputs.h.value),
+                    Number(hslInputs.s.value),
+                    Number(hslInputs.l.value)
+                );
+            });
+        });
+        Object.values(fontRgbInputs).forEach((input) => {
+            input.addEventListener('input', () => {
+                applyFontColorFromRgb(
+                    Number(fontRgbInputs.r.value),
+                    Number(fontRgbInputs.g.value),
+                    Number(fontRgbInputs.b.value)
+                );
+            });
+        });
+        Object.values(fontHslInputs).forEach((input) => {
+            input.addEventListener('input', () => {
+                applyFontColorFromHsl(
+                    Number(fontHslInputs.h.value),
+                    Number(fontHslInputs.s.value),
+                    Number(fontHslInputs.l.value)
+                );
+            });
+        });
+
+        buildFontMenu();
+        applyColorFromRgb(255, 255, 255);
+        applyFontColorFromRgb(21, 22, 27);
+    </script>
+</body>
+</html>
