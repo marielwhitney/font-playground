@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Font Playground</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Betania+Patmos+In&family=Caveat:wght@400..700&family=Gravitas+One&family=Instrument+Serif:ital@0;1&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Archivo+Black&family=Asimovian&family=Betania+Patmos+In&family=Caveat:wght@400..700&family=Cormorant+Garamond:ital,wght@0,300..700;1,300..700&family=Gravitas+One&family=Instrument+Serif:ital@0;1&family=Momo+Signature&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Oswald:wght@200..700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Quicksand:wght@300..700&family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Roboto:ital,wght@0,100..900;1,100..900&family=SN+Pro:ital,wght@0,300;1,300&family=Sekuya&display=swap" rel="stylesheet">
     <style>
         :root {
             --page-bg: rgb(255, 255, 255);
@@ -25,6 +25,7 @@
             margin: 0;
             padding: 0 0 210px;
             background-color: var(--page-bg);
+            font-family: "SN Pro", sans-serif;
             min-height: 100vh;
             transition: background-color 120ms linear;
         }
@@ -38,7 +39,6 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 10px;
         }
 
         .top-actions-menu {
@@ -69,10 +69,23 @@
             font-size: 15px;
             font-weight: 700;
             line-height: 1;
+            font-family: inherit;
         }
 
         .top-control-btn:hover {
             background: var(--ui-hover);
+        }
+
+        .contact-link {
+            gap: 8px;
+            justify-content: flex-start;
+            max-width: min(62vw, 520px);
+        }
+
+        .contact-link-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .trash-btn {
@@ -138,8 +151,9 @@
             padding: 8px 10px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 500;
             line-height: 1;
+            font-family: inherit;
         }
 
         .save-modal-btn:hover {
@@ -163,6 +177,37 @@
             min-height: 1em;
             font-size: 12px;
             opacity: 0.85;
+        }
+
+        .contact-card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 10px;
+            min-height: 190px;
+            padding: 12px 8px 2px;
+        }
+
+        .contact-card-icon {
+            font-size: 40px;
+            color: rgb(211, 211, 211);
+        }
+
+        .contact-card-message {
+            margin: 0;
+            font-size: clamp(15px, 1.4vw, 20px);
+            line-height: 1.2;
+            font-weight: 500;
+        }
+
+        .contact-card-email {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.9;
+            color: var(--ui-ink);
+            text-decoration: underline;
         }
 
         .app-shell {
@@ -238,7 +283,6 @@
             padding: 14px 18px;
             width: 100%;
             outline: none;
-            font-weight: 500;
         }
 
         .type-input::placeholder {
@@ -333,6 +377,7 @@
             color: var(--ui-ink);
             line-height: 1;
             text-transform: lowercase;
+              font-family: inherit;
         }
 
         .button-column > button:hover {
@@ -349,7 +394,7 @@
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: inherit;
         }
 
         .mobile-customizer-tabs {
@@ -402,11 +447,11 @@
             letter-spacing: 0.02em;
             line-height: 1;
             cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+            border-radius: 6px;
         }
 
-        .tab-btn + .tab-btn {
-            margin-left: -3px;
-        }
 
         .tab-btn[aria-selected="false"] {
             opacity: 0.9;
@@ -599,11 +644,16 @@
                 display: inline-flex;
             }
 
+            .contact-link-text {
+                display: none;
+            }
+
             .top-actions-menu {
                 position: absolute;
                 top: calc(100% + 8px);
                 right: 0;
                 display: none;
+                z-index: 21;
                 flex-direction: column;
                 align-items: stretch;
                 gap: 6px;
@@ -692,9 +742,6 @@
                 border-width: 3px;
             }
 
-            .tab-btn + .tab-btn {
-                margin-left: -3px;
-            }
 
             .slider {
                 height: 7px;
@@ -719,6 +766,9 @@
 </head>
 <body>
     <div class="top-controls" aria-label="Page controls">
+        <button class="top-control-btn contact-link" id="contact-card-button" type="button" aria-label="Open contact card">
+            <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+        </button>
         <button class="top-control-btn trash-btn" id="trash-dropzone" type="button" aria-label="Trash bin">
             <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
         </button>
@@ -737,11 +787,27 @@
                 <div class="save-modal-title" id="save-modal-title">Playground Notecard</div>
                 <div class="save-modal-actions">
                     <button class="save-modal-btn" id="copy-note-button" type="button">Copy</button>
-                    <button class="save-modal-btn" id="close-save-modal-button" type="button">Close</button>
+                    <button class="save-modal-btn" id="close-save-modal-button" type="button">X</button>
                 </div>
             </div>
             <textarea class="save-note" id="save-note-text" spellcheck="false"></textarea>
             <div class="save-copy-status" id="save-copy-status" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <div class="save-modal" id="contact-modal" hidden role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+        <div class="save-modal-panel">
+            <div class="save-modal-header">
+                <div class="save-modal-title" id="contact-modal-title">Contact Card</div>
+                <div class="save-modal-actions">
+                    <button class="save-modal-btn" id="close-contact-modal-button" type="button">X</button>
+                </div>
+            </div>
+            <div class="contact-card-content">
+                <i class="fa-regular fa-envelope contact-card-icon" aria-hidden="true"></i>
+                <p class="contact-card-message">dont see a font you want? contact me!</p>
+                <a class="contact-card-email" href="mailto:domnen.mariel@gmail.com">domnen.mariel@gmail.com</a>
+            </div>
         </div>
     </div>
 
@@ -753,7 +819,7 @@
                         class="type-input"
                         id="type-input"
                         type="text"
-                        placeholder="Type"
+                        placeholder="Type then choose font..."
                         aria-label="Enter text to place on canvas"
                     >
                     <button class="menu-button" id="font-menu-button" type="button" aria-label="Font options menu">
@@ -908,6 +974,7 @@
         const fontMenuList = document.getElementById('font-menu-list');
         const resetPageButton = document.getElementById('reset-page-button');
         const saveNoteButton = document.getElementById('save-note-button');
+        const contactCardButton = document.getElementById('contact-card-button');
         const topMobileMenuButton = document.getElementById('top-mobile-menu-button');
         const topActionsMenu = document.getElementById('top-actions-menu');
         const trashDropzone = document.getElementById('trash-dropzone');
@@ -916,6 +983,8 @@
         const copyNoteButton = document.getElementById('copy-note-button');
         const closeSaveModalButton = document.getElementById('close-save-modal-button');
         const saveCopyStatus = document.getElementById('save-copy-status');
+        const contactModal = document.getElementById('contact-modal');
+        const closeContactModalButton = document.getElementById('close-contact-modal-button');
         const bgCustomizer = document.getElementById('bg-customizer');
         const tabButtons = bgCustomizer.querySelectorAll('.tab-btn');
         const fontColorCustomizer = document.getElementById('font-color-customizer');
@@ -941,7 +1010,15 @@
             { label: 'Quicksand', family: '"Quicksand", sans-serif', weight: '600' },
             { label: 'Gravitas', family: '"Gravitas One", serif', weight: '400' },
             { label: 'Caveat', family: '"Caveat", cursive', weight: '600' },
-            { label: 'Playfair', family: '"Playfair Display", serif', weight: '700' }
+            { label: 'Playfair', family: '"Playfair Display", serif', weight: '700' },
+            { label: 'Oswald', family: '"Oswald", sans-serif', weight: '500' },
+            { label: 'Aboreto', family: '"Aboreto", system-ui', weight: '400', style: 'normal' },
+            { label: 'PT Serif', family: '"PT Serif", serif', weight: '400', style: 'normal' },
+            { label: 'Cormorant', family: '"Cormorant Garamond", serif', weight: '500', style: 'normal' },
+            { label: 'Raleway', family: '"Raleway", sans-serif', weight: '500', style: 'normal' },
+            { label: 'Sekuya', family: '"Sekuya", system-ui', weight: '400', style: 'normal' },
+            { label: 'Momo', family: '"Momo Signature", cursive', weight: '400', style: 'normal' },
+            { label: 'Asimovian', family: '"Asimovian", sans-serif', weight: '400', style: 'normal' }
         ];
 
         const panels = {
@@ -1031,11 +1108,20 @@
             return rgbString.replace(/\s+/g, ' ').trim();
         }
 
+        function rgbStringToHex(rgbString) {
+            const matches = rgbString.match(/\d+/g);
+            if (!matches || matches.length < 3) return '';
+            const [r, g, b] = matches.slice(0, 3).map((value) => clamp(Number(value), 0, 255));
+            return `#${[r, g, b].map((value) => value.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+        }
+
         function buildSaveNote() {
             const rootStyles = getComputedStyle(root);
             const bodyStyles = getComputedStyle(document.body);
             const bgColor = formatRgbString(bodyStyles.backgroundColor);
             const canvasTextColor = formatRgbString(rootStyles.getPropertyValue('--canvas-text-color'));
+            const bgHex = rgbStringToHex(bgColor);
+            const textHex = rgbStringToHex(canvasTextColor);
             const canvasItems = [...playgroundCanvas.querySelectorAll('.canvas-item')];
             const typeMap = new Map([
                 ['h1', new Set()],
@@ -1060,8 +1146,8 @@
             const lines = [
                 'Font Playground Notecard',
                 '',
-                `Background: ${bgColor}`,
-                `Text Color: ${canvasTextColor}`,
+                `Background: ${bgColor}${bgHex ? ` (${bgHex})` : ''}`,
+                `Text Color: ${canvasTextColor}${textHex ? ` (${textHex})` : ''}`,
                 '',
                 'Font used:',
                 ...fontLines
@@ -1072,6 +1158,7 @@
 
         function openSaveModal() {
             closeTopActionsMenu();
+            closeContactModal();
             saveNoteText.value = buildSaveNote();
             saveCopyStatus.textContent = '';
             saveModal.hidden = false;
@@ -1081,6 +1168,17 @@
 
         function closeSaveModal() {
             saveModal.hidden = true;
+        }
+
+        function openContactModal() {
+            closeTopActionsMenu();
+            closeSaveModal();
+            contactModal.hidden = false;
+            closeContactModalButton.focus();
+        }
+
+        function closeContactModal() {
+            contactModal.hidden = true;
         }
 
         async function copySaveNote() {
@@ -1231,7 +1329,7 @@
         function openComposerForType(tagName, buttonEl) {
             activeTextType = tagName;
             typeComposer.hidden = false;
-            typeInput.placeholder = `Type ${tagName}`;
+            typeInput.placeholder = 'Type then choose font...';
             if (buttonEl) positionComposerNextToButton(buttonEl);
             typeInput.focus();
             typeInput.select();
@@ -1481,13 +1579,33 @@
             });
         });
 
-        resetPageButton.addEventListener('click', resetPlayground);
-        saveNoteButton.addEventListener('click', openSaveModal);
-        topMobileMenuButton.addEventListener('click', toggleTopActionsMenu);
+        resetPageButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            resetPlayground();
+        });
+        saveNoteButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            openSaveModal();
+        });
+        contactCardButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            openContactModal();
+        });
+        topMobileMenuButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleTopActionsMenu();
+        });
+        topActionsMenu.addEventListener('click', (event) => {
+            event.stopPropagation();
+        });
         closeSaveModalButton.addEventListener('click', closeSaveModal);
         copyNoteButton.addEventListener('click', copySaveNote);
+        closeContactModalButton.addEventListener('click', closeContactModal);
         saveModal.addEventListener('click', (event) => {
             if (event.target === saveModal) closeSaveModal();
+        });
+        contactModal.addEventListener('click', (event) => {
+            if (event.target === contactModal) closeContactModal();
         });
         document.addEventListener('click', (event) => {
             if (!isMobileViewport()) return;
@@ -1499,6 +1617,9 @@
         window.addEventListener('keydown', (event) => {
             if (event.key === 'Escape' && !saveModal.hidden) {
                 closeSaveModal();
+            }
+            if (event.key === 'Escape' && !contactModal.hidden) {
+                closeContactModal();
             }
             if (event.key === 'Escape' && isMobileViewport()) {
                 closeTopActionsMenu();
